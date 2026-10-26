@@ -804,19 +804,6 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var
         <div class="chips"><span class="chip o">실물 신분증 (사격)</span><span class="chip">편한 신발</span><span class="chip">가벼운 겉옷</span></div>
         <p class="small">10월 말 산간 지역은 아침저녁으로 쌀쌀합니다.</p>
       </div>
-      <div class="tile" id="rv" hidden>
-        <span class="kicker k-golf">후기</span>
-        <h2>워크샵 후기를 남겨 주세요</h2>
-        <p class="small">1분이면 충분합니다. 다음 행사에 큰 도움이 됩니다.</p>
-        <div class="rvq">가장 좋았던 프로그램 <small>(여러 개 선택 가능)</small></div>
-        <div class="rvc" id="rv-opts"></div>
-        <label class="rvq" for="rv-good">좋았던 이유</label>
-        <textarea id="rv-good" rows="3" maxlength="400" placeholder="자유롭게 적어 주세요"></textarea>
-        <label class="rvq" for="rv-bad">아쉬웠던 프로그램이나 개선할 사항</label>
-        <textarea id="rv-bad" rows="3" maxlength="400" placeholder="자유롭게 적어 주세요"></textarea>
-        <button type="button" class="btn main" id="rv-send">후기 보내기</button>
-        <p class="small" id="rv-msg" role="status"></p>
-      </div>
       <div class="tile">
         <span class="kicker k-non">궁금하신 점</span>
         <h2>담당자 연락처</h2>
@@ -1052,36 +1039,5 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var
 })();
 </script>
 
-<script>
-(async function(){
-  var box=document.getElementById('rv'); if(!box) return;
-  var db=null,user=null;
-  try{ if(window.claude&&claude.use){ db=await claude.use('db'); user=await claude.use('user'); } }catch(e){}
-  if(!db) return;
-  box.hidden=false;
-  var OPT=['골프 라운딩','사격','뮤지엄산','사운드워킹','만찬','객실','식음'];
-  var sel={}, wrap=document.getElementById('rv-opts');
-  OPT.forEach(function(n){var b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('aria-pressed','false');
-    b.addEventListener('click',function(){sel[n]=!sel[n];b.setAttribute('aria-pressed',sel[n]?'true':'false')});wrap.appendChild(b)});
-  var msg=document.getElementById('rv-msg'), btn=document.getElementById('rv-send');
-  btn.addEventListener('click',async function(){
-    var best=OPT.filter(function(n){return sel[n]});
-    var good=document.getElementById('rv-good').value.trim(), bad=document.getElementById('rv-bad').value.trim();
-    if(!best.length&&!good&&!bad){msg.textContent='내용을 한 가지 이상 입력해 주세요.';return}
-    btn.disabled=true; msg.textContent='보내는 중입니다…';
-    var data={best:best,good:good,bad:bad,at:new Date().toISOString()};
-    try{
-      var id=null; try{id=user&&user.id?await user.id():null}catch(e){}
-      if(id){await db.doc('reviews/'+id).set(data)} else {await db.collection('reviews').add(data)}
-      msg.textContent='감사합니다. 후기가 전달되었습니다.'; btn.textContent='다시 수정해서 보내기';
-    }catch(e){
-      var txt='[워크샵 후기]'+'\n좋았던 프로그램: '+best.join(', ')+'\n좋았던 이유: '+good+'\n개선할 사항: '+bad;
-      try{await navigator.clipboard.writeText(txt);msg.textContent='바로 전송이 어려워 후기를 복사했습니다. 담당자에게 문자나 카카오톡으로 붙여넣어 보내 주세요.'}
-      catch(e2){msg.textContent='전송하지 못했습니다. 후기를 담당자에게 문자나 카카오톡으로 보내 주세요.'}
-    }
-    btn.disabled=false;
-  });
-})();
-</script>
 
 </body></html>
